@@ -11,6 +11,9 @@ let ksbItems = []; // Array of KSB item details
 let themeData = []; // Aggregated theme details
 let rplLog = []; // RPL details per learner
 let posCalendar = []; // Generated PoS calendar modules
+let customWeeklyCalendar = null;
+let customMonthlyCalendar = null;
+let currentEditingIndex = -1;
 
 // Charts instances
 let gapChartInstance = null;
@@ -268,6 +271,18 @@ function setupEventListeners() {
     // Direct Word Document Export Button
     document.getElementById('btn-export-word-direct').addEventListener('click', exportToWordDocx);
 
+    // Open Interactive Arranger Modal Button
+    document.getElementById('btn-open-arranger').addEventListener('click', openArrangerModal);
+    
+    // Close Arranger Button
+    document.getElementById('btn-arranger-close').addEventListener('click', closeArrangerModal);
+    document.getElementById('btn-arranger-reset').addEventListener('click', resetArrangerOrder);
+
+    // Card Edit Modal triggers
+    document.getElementById('btn-card-edit-close').addEventListener('click', closeCardEditModal);
+    document.getElementById('btn-card-edit-cancel').addEventListener('click', closeCardEditModal);
+    document.getElementById('btn-card-edit-save').addEventListener('click', saveCardChanges);
+
     // Export Buttons Copy/Download
     document.getElementById('btn-copy-dynamics').addEventListener('click', () => copyToClipboard('dynamics-payload-code'));
     document.getElementById('btn-download-dynamics').addEventListener('click', () => downloadJSON('dynamics-payload-code', 'dynamics_onefile_payload.json'));
@@ -522,6 +537,8 @@ function generateRandomNormalScore(mean, sd) {
 
 // Data Analysis & Hours Allocation Engine
 function executeAnalysisEngine(rows, fundingBand = 14000) {
+    customWeeklyCalendar = null;
+    customMonthlyCalendar = null;
     // 1. Extract KSB codes uniquely and calculate cohort aggregations per KSB item
     // In Format B, one row maps to multiple KSB items (e.g. K1, S1, S2).
     // Let's first build mapping: KSB Code -> list of rows that reference it
@@ -882,7 +899,28 @@ function renderCharts() {
                 }
             },
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            const ksbCode = context[0].label;
+                            const ksb = ksbItems.find(k => k.code === ksbCode);
+                            return ksb ? `${ksbCode} (${ksb.theme})` : ksbCode;
+                        },
+                        label: function(context) {
+                            const ksbCode = context.label;
+                            const ksb = ksbItems.find(k => k.code === ksbCode);
+                            const score = context.raw;
+                            const lines = [`Mean Competency: ${score} / 10`];
+                            if (ksb && ksb.desc) {
+                                lines.push('');
+                                lines.push('Description:');
+                                lines.push(...wrapText(ksb.desc, 60));
+                            }
+                            return lines;
+                        }
+                    }
+                }
             }
         }
     });
@@ -946,10 +984,20 @@ function renderTables() {
     
     activeCalendarRows().forEach(row => {
         const tr = document.createElement('tr');
+        const ksbPillsHtml = row.Mapped_KSBs.split(',').map(code => {
+            const cleanCode = code.trim();
+            if (!cleanCode || cleanCode === 'Review & Reflect') {
+                return `<span class="ksb-tooltip-pill" title="Consolidation and review session" style="background-color: var(--text-muted); color: #ffffff;">Review & Reflect</span>`;
+            }
+            const ksb = ksbItems.find(k => k.code === cleanCode);
+            const desc = ksb ? ksb.desc : 'No description available';
+            return `<span class="ksb-tooltip-pill" title="${cleanCode}: ${desc}">${cleanCode}</span>`;
+        }).join(' ');
+
         tr.innerHTML = `
             <td style="font-weight: 600; white-space: nowrap; color: var(--color-secondary);">${row.Timeline}</td>
             <td style="font-weight: 500;">${row.Module_Title}</td>
-            <td style="font-family: monospace; font-size: 0.8125rem; color: var(--color-accent);">${row.Mapped_KSBs}</td>
+            <td><div style="display: flex; flex-wrap: wrap; gap: 0.25rem; max-width: 320px;">${ksbPillsHtml}</div></td>
             <td><span class="delivery-pill">${row.Delivery_Mode}</span></td>
             <td><span class="evidence-pill">${row.OneFile_Target}</span></td>
         `;
@@ -1128,9 +1176,194 @@ function activeCalendarRows() {
     const viewSelect = document.getElementById('calendar-view-select');
     const view = viewSelect ? viewSelect.value : 'monthly';
     if (view === 'weekly') {
-        return generateWeeklyRows();
+        if (!customWeeklyCalendar) {
+            customWeeklyCalendar = generateWeeklyRows();
+        }
+        return customWeeklyCalendar;
     }
-    return posCalendar;
+    if (!customMonthlyCalendar && posCalendar.length > 0) {
+        customMonthlyCalendar = JSON.parse(JSON.stringify(posCalendar));
+    }
+    return customMonthlyCalendar || posCalendar;
+}
+
+// Text wrapping utility for tooltips
+function wrapText(text, limit = 50) {
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+    words.forEach(word => {
+        if ((currentLine + word).length > limit) {
+            lines.push(currentLine.trim());
+            currentLine = word + ' ';
+        } else {
+            currentLine += word + ' ';
+        }
+    });
+    if (currentLine) lines.push(currentLine.trim());
+    return lines;
+}
+
+// Open Arranger Modal
+function openArrangerModal() {
+    const modal = document.getElementById('arranger-modal');
+    modal.style.display = 'flex';
+    
+    // Set standard title in arranger header
+    const stdName = document.getElementById('standard-badge').textContent;
+    document.getElementById('arranger-standard-title').textContent = stdName;
+
+    // Render cards
+    renderArrangerCards();
+}
+
+// Close Arranger Modal
+function closeArrangerModal() {
+    document.getElementById('arranger-modal').style.display = 'none';
+    renderTables(); // Refresh dashboard tables with custom arranger order!
+    generateExportPayloads(fundingBandValue()); // Refresh export payloads!
+}
+
+// Reset Arranger Order
+function resetArrangerOrder() {
+    if (confirm("Are you sure you want to reset the calendar order to its default state? All custom rearrangements and edits will be lost.")) {
+        customWeeklyCalendar = null;
+        customMonthlyCalendar = null;
+        renderArrangerCards();
+        showToast("Calendar reset to defaults!");
+    }
+}
+
+// Close Card Edit Modal
+function closeCardEditModal() {
+    document.getElementById('card-edit-modal').style.display = 'none';
+    currentEditingIndex = -1;
+}
+
+// Save Card Edit changes
+function saveCardChanges() {
+    if (currentEditingIndex === -1) return;
+    
+    const rows = activeCalendarRows();
+    const row = rows[currentEditingIndex];
+    
+    row.Module_Title = document.getElementById('edit-card-title').value;
+    row.Mapped_KSBs = document.getElementById('edit-card-ksbs').value;
+    row.Delivery_Mode = document.getElementById('edit-card-mode').value;
+    row.OneFile_Target = document.getElementById('edit-card-target').value;
+    
+    closeCardEditModal();
+    renderArrangerCards();
+    showToast("Lesson details updated!");
+}
+
+// Render Draggable Cards in Modal Grid
+function renderArrangerCards() {
+    const container = document.getElementById('arranger-grid-container');
+    container.innerHTML = '';
+    
+    const rows = activeCalendarRows();
+    
+    rows.forEach((row, idx) => {
+        const card = document.createElement('div');
+        card.className = 'arranger-card glass';
+        card.setAttribute('draggable', 'true');
+        card.setAttribute('data-index', idx);
+        
+        // Truncate descriptions to fit cleanly
+        const truncatedTitle = row.Module_Title.length > 90 ? row.Module_Title.substring(0, 87) + '...' : row.Module_Title;
+
+        card.innerHTML = `
+            <div class="card-num">${row.Timeline}</div>
+            <div class="card-topic" title="Double click to edit: ${row.Module_Title}">${truncatedTitle}</div>
+            <div class="card-ksbs" title="Mapped KSBs">${row.Mapped_KSBs}</div>
+            <div class="card-footer">
+                <span class="card-mode" style="background-color: var(--color-blue-light); padding: 0.125rem 0.375rem; border-radius: 4px; color: var(--color-secondary); font-size: 0.6875rem;">${row.Delivery_Mode.split(' ')[0]}</span>
+                <span class="card-target" style="font-weight: 600;">${row.OneFile_Target.substring(0, 20)}</span>
+            </div>
+        `;
+        
+        // Double-click to edit card details
+        card.addEventListener('dblclick', () => {
+            currentEditingIndex = idx;
+            document.getElementById('edit-card-timeline').value = row.Timeline;
+            document.getElementById('edit-card-title').value = row.Module_Title;
+            document.getElementById('edit-card-ksbs').value = row.Mapped_KSBs;
+            document.getElementById('edit-card-mode').value = row.Delivery_Mode;
+            document.getElementById('edit-card-target').value = row.OneFile_Target;
+            document.getElementById('card-edit-modal').style.display = 'flex';
+        });
+
+        container.appendChild(card);
+    });
+
+    setupArrangerDragAndDrop();
+}
+
+// Setup HTML5 Drag and Drop swap logic
+function setupArrangerDragAndDrop() {
+    const cards = document.querySelectorAll('.arranger-card');
+    let dragSrcEl = null;
+
+    cards.forEach(card => {
+        card.addEventListener('dragstart', function(e) {
+            dragSrcEl = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.getAttribute('data-index'));
+        });
+
+        card.addEventListener('dragover', function(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        });
+
+        card.addEventListener('dragenter', function() {
+            if (this !== dragSrcEl) {
+                this.classList.add('drag-over');
+            }
+        });
+
+        card.addEventListener('dragleave', function() {
+            this.classList.remove('drag-over');
+        });
+
+        card.addEventListener('drop', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            const srcIdx = parseInt(e.dataTransfer.getData('text/plain'));
+            const destIdx = parseInt(this.getAttribute('data-index'));
+            
+            if (srcIdx !== destIdx) {
+                const rows = activeCalendarRows();
+                
+                // Swap rows in current active array
+                const tempRow = rows[srcIdx];
+                rows[srcIdx] = rows[destIdx];
+                rows[destIdx] = tempRow;
+                
+                // Keep timeline names correct! (Do not swap timelines, swap topics and mapped KSBs, delivery, targets)
+                const tempTimeline = rows[srcIdx].Timeline;
+                rows[srcIdx].Timeline = rows[destIdx].Timeline;
+                rows[destIdx].Timeline = tempTimeline;
+
+                // Re-render
+                renderArrangerCards();
+            }
+            return false;
+        });
+
+        card.addEventListener('dragend', function() {
+            cards.forEach(c => {
+                c.classList.remove('dragging');
+                c.classList.remove('drag-over');
+            });
+        });
+    });
 }
 
 // Clean KSB descriptions into clean titles using NLP rules

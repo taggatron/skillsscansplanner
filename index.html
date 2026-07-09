@@ -196,6 +196,9 @@
                                     <option value="weekly">Weekly Breakdown</option>
                                 </select>
                             </div>
+                            <button id="btn-open-arranger" class="btn btn-primary" style="width: auto; padding: 0.5rem 1rem;">
+                                🗓️ Open Arranger
+                            </button>
                             <button id="btn-export-word-direct" class="btn btn-secondary" style="width: auto; padding: 0.5rem 1rem; border-color: var(--color-primary);">
                                 📝 Export Word (.docx)
                             </button>
@@ -350,6 +353,71 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- Interactive Arranger Full-Page Modal -->
+    <div id="arranger-modal" class="arranger-modal-overlay" style="display: none;">
+        <div class="arranger-modal-content">
+            <header class="arranger-header">
+                <div class="arranger-brand">
+                    <span class="arranger-icon">🗓️</span>
+                    <div>
+                        <h3 style="font-family: var(--font-heading); font-weight: 800;">Interactive Curriculum Arranger</h3>
+                        <span class="arranger-sub" id="arranger-standard-title">Standard Name</span>
+                    </div>
+                </div>
+                <div class="arranger-actions">
+                    <span class="arranger-hint">💡 Drag and drop cards to rearrange weeks. Click any card to edit its details.</span>
+                    <button id="btn-arranger-reset" class="btn btn-secondary" style="width: auto;">🔄 Reset Order</button>
+                    <button id="btn-arranger-close" class="btn btn-primary" style="width: auto; background: var(--color-primary);">✖ Close Arranger</button>
+                </div>
+            </header>
+            <main class="arranger-grid" id="arranger-grid-container">
+                <!-- Draggable cards rendered dynamically -->
+            </main>
+        </div>
+    </div>
+
+    <!-- Arranger Card Edit Modal -->
+    <div id="card-edit-modal" class="card-edit-modal-overlay" style="display: none;">
+        <div class="card-edit-content">
+            <div class="card-edit-header">
+                <h4 style="font-family: var(--font-heading); font-weight: 700;">Edit Lesson Details</h4>
+                <button id="btn-card-edit-close" class="card-edit-close-btn">&times;</button>
+            </div>
+            <div class="card-edit-body">
+                <div class="input-group">
+                    <label for="edit-card-timeline">Timeline / Week</label>
+                    <input type="text" id="edit-card-timeline" disabled style="background-color: var(--bg-app); cursor: not-allowed;">
+                </div>
+                <div class="input-group">
+                    <label for="edit-card-title">Module / Lesson Topic</label>
+                    <input type="text" id="edit-card-title">
+                </div>
+                <div class="input-group">
+                    <label for="edit-card-ksbs">Mapped KSBs</label>
+                    <input type="text" id="edit-card-ksbs">
+                </div>
+                <div class="input-group">
+                    <label for="edit-card-mode">Delivery Mode</label>
+                    <select id="edit-card-mode">
+                        <option value="Day Release (On-Site FE College)">Day Release (On-Site FE College)</option>
+                        <option value="Workplace Coaching & Observation">Workplace Coaching & Observation</option>
+                        <option value="Workplace Coaching & Seminars">Workplace Coaching & Seminars</option>
+                        <option value="Workplace Coaching & Mentorship">Workplace Coaching & Mentorship</option>
+                        <option value="Directed Self-Study & Review">Directed Self-Study & Review</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="edit-card-target">OneFile Target Evidence</label>
+                    <input type="text" id="edit-card-target">
+                </div>
+            </div>
+            <div class="card-edit-footer">
+                <button id="btn-card-edit-cancel" class="btn btn-secondary" style="width: auto;">Cancel</button>
+                <button id="btn-card-edit-save" class="btn btn-primary" style="width: auto;">Save Changes</button>
+            </div>
+        </div>
     </div>
 
     <!-- Notification Toast -->
