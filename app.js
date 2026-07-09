@@ -259,6 +259,15 @@ function setupEventListeners() {
     document.getElementById('ksb-search').addEventListener('input', filterKSBTable);
     document.getElementById('priority-filter').addEventListener('change', filterKSBTable);
 
+    // Calendar view toggle
+    document.getElementById('calendar-view-select').addEventListener('change', () => {
+        renderTables();
+        generateExportPayloads(fundingBandValue());
+    });
+    
+    // Direct Word Document Export Button
+    document.getElementById('btn-export-word-direct').addEventListener('click', exportToWordDocx);
+
     // Export Buttons Copy/Download
     document.getElementById('btn-copy-dynamics').addEventListener('click', () => copyToClipboard('dynamics-payload-code'));
     document.getElementById('btn-download-dynamics').addEventListener('click', () => downloadJSON('dynamics-payload-code', 'dynamics_onefile_payload.json'));
@@ -935,7 +944,7 @@ function renderTables() {
     const calendarBody = document.querySelector('#pos-calendar-table tbody');
     calendarBody.innerHTML = '';
     
-    posCalendar.forEach(row => {
+    activeCalendarRows().forEach(row => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td style="font-weight: 600; white-space: nowrap; color: var(--color-secondary);">${row.Timeline}</td>
@@ -1064,7 +1073,7 @@ function generateExportPayloads(fundingBand = 14000) {
             Top_Gaps: topGapsStr || "None",
             RPL_Notes: rplNarrative,
             Weighting_Table: themeData,
-            PoS_Calendar_Table: posCalendar
+            PoS_Calendar_Table: activeCalendarRows()
         }
     };
 
@@ -1112,4 +1121,348 @@ function showToast(message) {
     setTimeout(() => {
         toast.classList.add('hidden');
     }, 2500);
+}
+
+// Active Calendar Selector
+function activeCalendarRows() {
+    const viewSelect = document.getElementById('calendar-view-select');
+    const view = viewSelect ? viewSelect.value : 'monthly';
+    if (view === 'weekly') {
+        return generateWeeklyRows();
+    }
+    return posCalendar;
+}
+
+// Clean KSB descriptions into clean titles using NLP rules
+function cleanKsbDescriptionToTopic(desc) {
+    let topic = desc;
+    // Strip common prefixes
+    topic = topic.replace(/^(You will understand|You will know|You will learn|Be able to describe|Demonstrate the ability to|Evidence how you|Evidence of where you|Be able to apply|Be able to identify|You can describe|You can demonstrate|Use the organisation’s|You must be able to|Be abale to evidence where you have|Be able to evidence where you have|Demonstrate delivering|Demonstrate how you|You can provides evidence of where you have)\s+/i, "");
+    // Capitalize first letter
+    topic = topic.charAt(0).toUpperCase() + topic.slice(1);
+    // Split by first comma, period, or "such as"
+    const delimiters = [", such as", " such as", " e.g.", " e.g.,", ",", "."];
+    let firstPart = topic;
+    for (const d of delimiters) {
+        const idx = firstPart.indexOf(d);
+        if (idx !== -1 && idx > 15) {
+            firstPart = firstPart.substring(0, idx);
+        }
+    }
+    // Truncate if still too long
+    if (firstPart.length > 70) {
+        firstPart = firstPart.substring(0, 67) + "...";
+    }
+    return firstPart.trim();
+}
+
+// Generate the progressive week-by-week calendar breakdown
+function generateWeeklyRows() {
+    const kItems = ksbItems.filter(item => item.code.startsWith('K'));
+    const sItems = ksbItems.filter(item => item.code.startsWith('S'));
+    const bItems = ksbItems.filter(item => item.code.startsWith('B'));
+
+    kItems.sort((a, b) => b.weight - a.weight);
+    sItems.sort((a, b) => b.weight - a.weight);
+    bItems.sort((a, b) => b.weight - a.weight);
+
+    const modulesMapping = [
+        { title: "Foundational Standards & Basic Principles", mode: "Day Release (On-Site FE College)", target: "Work Product / Test Paper", ksbs: [] },
+        { title: "Core Operational Concepts & Planning", mode: "Day Release (On-Site FE College)", target: "Short Written Assignment", ksbs: [] },
+        { title: "Skills Activation & Practical Delivery", mode: "Workplace Coaching & Observation", target: "Practical Observation", ksbs: [] },
+        { title: "Intermediate Application & Risk Mitigation", mode: "Workplace Coaching & Seminars", target: "Reflective Journal / Work Logs", ksbs: [] },
+        { title: "Advanced Operations & Inclusion Practices", mode: "Workplace Coaching & Mentorship", target: "Professional Discussion", ksbs: [] },
+        { title: "Portfolio Consolidation & EPA Readiness", mode: "Directed Self-Study & Review", target: "Full Portfolio Sign-off / Mock EPA", ksbs: [] }
+    ];
+
+    kItems.forEach((item, idx) => {
+        if (idx < kItems.length * 0.5) modulesMapping[0].ksbs.push(item);
+        else if (idx < kItems.length * 0.8) modulesMapping[1].ksbs.push(item);
+        else if (idx < kItems.length * 0.95) modulesMapping[2].ksbs.push(item);
+        else modulesMapping[3].ksbs.push(item);
+    });
+
+    sItems.forEach((item, idx) => {
+        if (idx < sItems.length * 0.2) modulesMapping[1].ksbs.push(item);
+        else if (idx < sItems.length * 0.5) modulesMapping[2].ksbs.push(item);
+        else if (idx < sItems.length * 0.8) modulesMapping[3].ksbs.push(item);
+        else modulesMapping[4].ksbs.push(item);
+    });
+
+    bItems.forEach((item, idx) => {
+        if (idx < bItems.length * 0.3) modulesMapping[2].ksbs.push(item);
+        else if (idx < bItems.length * 0.6) modulesMapping[3].ksbs.push(item);
+        else if (idx < bItems.length * 0.85) modulesMapping[4].ksbs.push(item);
+        else modulesMapping[5].ksbs.push(item);
+    });
+
+    const totalWeeks = durationMonths * 4;
+    const weeksPerModule = Math.floor(totalWeeks / 6);
+    const weeklyRows = [];
+
+    for (let i = 0; i < 6; i++) {
+        const mod = modulesMapping[i];
+        const moduleKsbs = mod.ksbs;
+        
+        moduleKsbs.sort((a, b) => {
+            const typeA = a.code[0], typeB = b.code[0];
+            if (typeA !== typeB) return { 'K': 1, 'S': 2, 'B': 3 }[typeA] - { 'K': 1, 'S': 2, 'B': 3 }[typeB];
+            return (parseInt(a.code.substring(1)) || 0) - (parseInt(b.code.substring(1)) || 0);
+        });
+
+        const count = moduleKsbs.length;
+        const ksbPerWeek = count / weeksPerModule;
+
+        for (let w = 0; w < weeksPerModule; w++) {
+            const weekNumber = (i * weeksPerModule) + w + 1;
+            const startIndex = Math.floor(w * ksbPerWeek);
+            const endIndex = Math.floor((w + 1) * ksbPerWeek);
+            const weekKsbItems = moduleKsbs.slice(startIndex, endIndex);
+            
+            const cleanCodes = weekKsbItems.map(item => item.code);
+            
+            let topicTitle = "";
+            if (weekKsbItems.length > 0) {
+                topicTitle = `${mod.title}: ${cleanKsbDescriptionToTopic(weekKsbItems[0].desc)}`;
+            } else {
+                topicTitle = `Milestone Application: ${mod.title} Practice`;
+            }
+
+            weeklyRows.push({
+                Timeline: `Week ${weekNumber}`,
+                Module_Title: topicTitle,
+                Mapped_KSBs: cleanCodes.join(', ') || 'Review & Reflect',
+                Delivery_Mode: mod.mode,
+                OneFile_Target: mod.OneFile_Target || mod.target
+            });
+        }
+    }
+
+    return weeklyRows;
+}
+
+// Generate binary .docx file directly in browser using docx.js
+function exportToWordDocx() {
+    try {
+        if (typeof docx === 'undefined') {
+            throw new Error("docx.js library not loaded");
+        }
+        
+        const activeTemplate = FALLBACK_TEMPLATES[currentStandard];
+        const stdName = activeTemplate ? activeTemplate.standardName : "Custom Standard Plan";
+        const topGaps = document.getElementById('stat-top-gaps').textContent;
+        const rplText = document.getElementById('stat-rpl-subtext').textContent;
+        const rplNarrative = document.getElementById('rpl-log-table tbody').children.length > 0 ? 
+            "A cohort funding and hours reduction plan has been applied based on baseline prior learning exemptions." : 
+            "No prior learning reductions apply.";
+
+        // Construct Word tables using docx builder
+        const weightingRows = [
+            // Table Header Row
+            new docx.TableRow({
+                children: [
+                    new docx.TableCell({ children: [new docx.Paragraph({ children: [new docx.TextRun({ text: "Theme Name", bold: true })] })], shading: { fill: "f1f5f9" } }),
+                    new docx.TableCell({ children: [new docx.Paragraph({ children: [new docx.TextRun({ text: "Allocated %", bold: true })] })], shading: { fill: "f1f5f9" } }),
+                    new docx.TableCell({ children: [new docx.Paragraph({ children: [new docx.TextRun({ text: "Allocated Hours", bold: true })] })], shading: { fill: "f1f5f9" } })
+                ]
+            }),
+            // Table Data Rows
+            ...themeData.map(row => new docx.TableRow({
+                children: [
+                    new docx.TableCell({ children: [new docx.Paragraph({ text: row.Theme_Name })] }),
+                    new docx.TableCell({ children: [new docx.Paragraph({ text: row.Allocated_Pct })] }),
+                    new docx.TableCell({ children: [new docx.Paragraph({ text: row.Allocated_Hours + " hrs" })] })
+                ]
+            }))
+        ];
+
+        const calendarRows = [
+            // Table Header Row
+            new docx.TableRow({
+                children: [
+                    new docx.TableCell({ children: [new docx.Paragraph({ children: [new docx.TextRun({ text: "Timeline", bold: true })] })], shading: { fill: "f1f5f9" } }),
+                    new docx.TableCell({ children: [new docx.Paragraph({ children: [new docx.TextRun({ text: "Module / Weekly Topic", bold: true })] })], shading: { fill: "f1f5f9" } }),
+                    new docx.TableCell({ children: [new docx.Paragraph({ children: [new docx.TextRun({ text: "Mapped KSBs", bold: true })] })], shading: { fill: "f1f5f9" } }),
+                    new docx.TableCell({ children: [new docx.Paragraph({ children: [new docx.TextRun({ text: "Delivery Mode", bold: true })] })], shading: { fill: "f1f5f9" } }),
+                    new docx.TableCell({ children: [new docx.Paragraph({ children: [new docx.TextRun({ text: "OneFile Target Evidence", bold: true })] })], shading: { fill: "f1f5f9" } })
+                ]
+            }),
+            // Table Data Rows
+            ...activeCalendarRows().map(row => new docx.TableRow({
+                children: [
+                    new docx.TableCell({ children: [new docx.Paragraph({ text: row.Timeline })] }),
+                    new docx.TableCell({ children: [new docx.Paragraph({ text: row.Module_Title })] }),
+                    new docx.TableCell({ children: [new docx.Paragraph({ text: row.Mapped_KSBs })] }),
+                    new docx.TableCell({ children: [new docx.Paragraph({ text: row.Delivery_Mode })] }),
+                    new docx.TableCell({ children: [new docx.Paragraph({ text: row.OneFile_Target })] })
+                ]
+            }))
+        ];
+
+        const doc = new docx.Document({
+            sections: [{
+                properties: {},
+                children: [
+                    new docx.Paragraph({
+                        children: [new docx.TextRun({ text: "Apprenticeship Curriculum Plan & Study Calendar", bold: true, size: 36 })],
+                        spacing: { after: 300 }
+                    }),
+                    new docx.Paragraph({
+                        children: [
+                            new docx.TextRun({ text: "Standard Name: ", bold: true }),
+                            new docx.TextRun({ text: stdName }),
+                        ],
+                        spacing: { after: 100 }
+                    }),
+                    new docx.Paragraph({
+                        children: [
+                            new docx.TextRun({ text: "Cohort Size: ", bold: true }),
+                            new docx.TextRun({ text: String(cohortSize) }),
+                        ],
+                        spacing: { after: 100 }
+                    }),
+                    new docx.Paragraph({
+                        children: [
+                            new docx.TextRun({ text: "Total Guided Learning Hours (GLH): ", bold: true }),
+                            new docx.TextRun({ text: String(totalGLH) + " hours" }),
+                        ],
+                        spacing: { after: 100 }
+                    }),
+                    new docx.Paragraph({
+                        children: [
+                            new docx.TextRun({ text: "Highest Priority Gaps: ", bold: true }),
+                            new docx.TextRun({ text: topGaps }),
+                        ],
+                        spacing: { after: 100 }
+                    }),
+                    new docx.Paragraph({
+                        children: [
+                            new docx.TextRun({ text: "Recognised Prior Learning (RPL): ", bold: true }),
+                            new docx.TextRun({ text: `${rplText}. ${rplNarrative}` }),
+                        ],
+                        spacing: { after: 300 }
+                    }),
+
+                    new docx.Paragraph({
+                        children: [new docx.TextRun({ text: "Theme Weightings (Table 1)", bold: true, size: 24 })],
+                        spacing: { before: 200, after: 150 }
+                    }),
+                    new docx.Table({
+                        width: { size: 100, type: docx.WidthType.PERCENTAGE },
+                        rows: weightingRows
+                    }),
+
+                    new docx.Paragraph({ text: "", spacing: { after: 300 } }),
+
+                    new docx.Paragraph({
+                        children: [new docx.TextRun({ text: "Programme of Study Calendar (Table 2)", bold: true, size: 24 })],
+                        spacing: { before: 200, after: 150 }
+                    }),
+                    new docx.Table({
+                        width: { size: 100, type: docx.WidthType.PERCENTAGE },
+                        rows: calendarRows
+                    })
+                ]
+            }]
+        });
+
+        docx.Packer.toBlob(doc).then(blob => {
+            saveAs(blob, `${stdName.replace(/\s+/g, '_')}_Curriculum_Plan.docx`);
+            showToast("Word document generated successfully!");
+        });
+
+    } catch (e) {
+        console.warn("docx.js failed, falling back to HTML format...", e);
+        exportToWordHtmlFallback();
+    }
+}
+
+// Offline fallback to generate docx container via HTML MIME type
+function exportToWordHtmlFallback() {
+    const stdName = document.getElementById('standard-badge').textContent;
+    const topGaps = document.getElementById('stat-top-gaps').textContent;
+    const rplText = document.getElementById('stat-rpl-subtext').textContent;
+    
+    let htmlContent = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+            <title>Apprenticeship Programme of Study Calendar</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333333; }
+                h1 { color: #4f46e5; border-bottom: 2px solid #6366f1; padding-bottom: 5px; font-size: 24px; }
+                h2 { color: #8b5cf6; margin-top: 25px; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; font-size: 18px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+                th { background-color: #f1f5f9; border: 1px solid #cbd5e1; padding: 8px; text-align: left; font-weight: bold; }
+                td { border: 1px solid #cbd5e1; padding: 8px; }
+                .meta { margin-bottom: 25px; background-color: #f8fafc; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; }
+                .meta p { margin: 5px 0; }
+            </style>
+        </head>
+        <body>
+            <h1>Apprenticeship Curriculum Plan & Study Calendar</h1>
+            <div class="meta">
+                <p><strong>Standard Name:</strong> ${stdName}</p>
+                <p><strong>Cohort Size:</strong> ${cohortSize}</p>
+                <p><strong>Total Guided Learning Hours (GLH):</strong> ${totalGLH} hours</p>
+                <p><strong>Highest Priority Gaps:</strong> ${topGaps}</p>
+                <p><strong>Recognised Prior Learning (RPL):</strong> ${rplText}</p>
+            </div>
+            
+            <h2>Theme Weightings (Table 1)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Theme Name</th>
+                        <th>Allocated %</th>
+                        <th>Allocated Hours</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${themeData.map(row => `
+                        <tr>
+                            <td>${row.Theme_Name}</td>
+                            <td>${row.Allocated_Pct}</td>
+                            <td>${row.Allocated_Hours} hrs</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            
+            <h2>Programme of Study Calendar (Table 2)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timeline</th>
+                        <th>Module / Weekly Topic</th>
+                        <th>Mapped KSBs</th>
+                        <th>Delivery Mode</th>
+                        <th>OneFile Target Evidence</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${activeCalendarRows().map(row => `
+                        <tr>
+                            <td>${row.Timeline}</td>
+                            <td>${row.Module_Title}</td>
+                            <td>${row.Mapped_KSBs}</td>
+                            <td>${row.Delivery_Mode}</td>
+                            <td>${row.OneFile_Target}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </body>
+        </html>
+    `;
+    
+    const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${stdName.replace(/\s+/g, '_')}_Curriculum_Plan.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast("Word document exported via fallback mechanism!");
 }

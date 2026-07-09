@@ -12,9 +12,13 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- docx.js for Word Document Generation -->
+    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js"></script>
+    <!-- FileSaver.js for file saving -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="dark-theme">
+<body class="light-theme">
     <div class="app-container">
         <!-- Sidebar Navigation & Controls -->
         <aside class="sidebar">
@@ -83,7 +87,7 @@
             <div class="control-section">
                 <h2>Theme Mode</h2>
                 <button id="theme-toggle" class="btn btn-secondary">
-                    <span id="theme-icon">☀️</span> <span id="theme-text">Switch to Light Mode</span>
+                    <span id="theme-icon">🌙</span> <span id="theme-text">Switch to Dark Mode</span>
                 </button>
             </div>
             
@@ -180,8 +184,22 @@
 
                 <div class="tab-content active" id="tab-pos-calendar">
                     <div class="table-actions">
-                        <h4>Optimized Programme of Study Calendar</h4>
-                        <span class="table-desc">Foundational Knowledge (K) front-loaded. Skills (S) and Behaviours (B) progressive alongside milestones.</span>
+                        <div>
+                            <h4>Optimized Programme of Study Calendar</h4>
+                            <span class="table-desc">Foundational Knowledge (K) front-loaded. Skills (S) and Behaviours (B) progressive alongside milestones.</span>
+                        </div>
+                        <div class="filters" style="align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <label for="calendar-view-select" style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); white-space: nowrap;">View Level:</label>
+                                <select id="calendar-view-select" style="width: 160px; padding: 0.5rem 0.75rem;">
+                                    <option value="monthly" selected>Monthly Modules</option>
+                                    <option value="weekly">Weekly Breakdown</option>
+                                </select>
+                            </div>
+                            <button id="btn-export-word-direct" class="btn btn-secondary" style="width: auto; padding: 0.5rem 1rem; border-color: var(--color-primary);">
+                                📝 Export Word (.docx)
+                            </button>
+                        </div>
                     </div>
                     <div class="table-wrapper">
                         <table id="pos-calendar-table">
