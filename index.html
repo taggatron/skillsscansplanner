@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSB Gap Analyzer & Curriculum Planner</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- SheetJS (XLSX) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Sidebar Navigation & Controls -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <span class="logo-icon">⚡</span>
+                <div class="logo-text">
+                    <h1>Antigravity</h1>
+                    <span class="logo-sub">Curriculum Planner</span>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h2>1. Select Standard</h2>
+                <div class="select-wrapper">
+                    <select id="standard-select">
+                        <option value="l3_outdoor" selected>L3 Outdoor Activity Instructor</option>
+                        <option value="l2_leisure">L2 Leisure Team Member</option>
+                        <option value="custom">Upload Custom Standard...</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Parameters Section -->
+            <div class="control-section" id="parameters-section">
+                <h2>2. Program Parameters</h2>
+                
+                <div class="input-group">
+                    <label for="cohort-size">Cohort Size</label>
+                    <div class="range-container">
+                        <input type="range" id="cohort-size" min="1" max="50" value="15">
+                        <span id="cohort-size-val">15</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="total-glh">Total Guided Learning Hours (GLH)</label>
+                    <input type="number" id="total-glh" value="1000" min="100" max="3000" step="50">
+                </div>
+
+                <div class="input-group">
+                    <label for="timeline-months">Duration (Months)</label>
+                    <select id="timeline-months">
+                        <option value="12" selected>12 Months</option>
+                        <option value="18">18 Months</option>
+                        <option value="24">24 Months</option>
+                    </select>
+                </div>
+
+                <button id="btn-generate" class="btn btn-primary">
+                    <span class="btn-icon">⚡</span> Simulate Cohort Data
+                </button>
+            </div>
+
+            <!-- Custom File Upload Panel -->
+            <div class="control-section" id="upload-section">
+                <h2>3. Ingest Student Scans</h2>
+                <div class="upload-box" id="drop-zone">
+                    <span class="upload-icon">📁</span>
+                    <p class="upload-text">Drag & drop learner files or click to browse</p>
+                    <input type="file" id="file-input" multiple accept=".xlsx, .xls">
+                </div>
+                <div class="file-list" id="uploaded-files-list"></div>
+            </div>
+
+            <!-- Configuration Options -->
+            <div class="control-section">
+                <h2>Theme Mode</h2>
+                <button id="theme-toggle" class="btn btn-secondary">
+                    <span id="theme-icon">☀️</span> <span id="theme-text">Switch to Light Mode</span>
+                </button>
+            </div>
+            
+            <div class="sidebar-footer">
+                <p>v1.2.0 • Apprenticeship Systems</p>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard View -->
+        <main class="main-content">
+            <!-- Header Status -->
+            <header class="dashboard-header">
+                <div class="header-titles">
+                    <span class="badge" id="standard-badge">L3 Outdoor Activity Instructor</span>
+                    <h2 id="standard-title">L3 Outdoor Activity Instructor Curriculum Analysis</h2>
+                </div>
+                <div class="status-indicator">
+                    <span class="status-dot green"></span>
+                    <span id="status-text">System Ready</span>
+                </div>
+            </header>
+
+            <!-- Stats Overview Row -->
+            <section class="stats-grid">
+                <div class="stat-card glass shadow-sm">
+                    <div class="stat-header">
+                        <span class="stat-title">Cohort Size</span>
+                        <span class="stat-icon purple">👥</span>
+                    </div>
+                    <div class="stat-value" id="stat-cohort-size">15</div>
+                    <div class="stat-subtext">Active Learners in Dataset</div>
+                </div>
+
+                <div class="stat-card glass shadow-sm">
+                    <div class="stat-header">
+                        <span class="stat-title">KSB References Taught</span>
+                        <span class="stat-icon blue">📖</span>
+                    </div>
+                    <div class="stat-value" id="stat-ksb-count">39</div>
+                    <div class="stat-subtext" id="stat-ksb-ratio">Knowledge, Skills & Behaviours</div>
+                </div>
+
+                <div class="stat-card glass shadow-sm">
+                    <div class="stat-header">
+                        <span class="stat-title">Highest Priority Gaps</span>
+                        <span class="stat-icon red">⚠️</span>
+                    </div>
+                    <div class="stat-value" id="stat-top-gaps">K10, B1</div>
+                    <div class="stat-subtext">Scores 0-3 (No understanding)</div>
+                </div>
+
+                <div class="stat-card glass shadow-sm">
+                    <div class="stat-header">
+                        <span class="stat-title">Prior Learning (RPL) Reductions</span>
+                        <span class="stat-icon green">💰</span>
+                    </div>
+                    <div class="stat-value" id="stat-rpl-reduction">£0</div>
+                    <div class="stat-subtext" id="stat-rpl-subtext">0 hours reduction (0%)</div>
+                </div>
+            </section>
+
+            <!-- Charting & Visual Analysis Section -->
+            <section class="visuals-grid">
+                <div class="card glass shadow-sm chat-card">
+                    <div class="card-header">
+                        <h3>KSB Gaps Profile (Cohort Average Score)</h3>
+                        <span class="card-subtitle">Lower score represents wider gap ($W = 10 - \text{Mean}$)</span>
+                    </div>
+                    <div class="card-body chart-container">
+                        <canvas id="gap-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card glass shadow-sm pie-card">
+                    <div class="card-header">
+                        <h3>Proportional Guided Learning Hours (GLH) by Theme</h3>
+                        <span class="card-subtitle">Aggregated theme weighting based on gap weightings</span>
+                    </div>
+                    <div class="card-body chart-container">
+                        <canvas id="theme-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Main Tabbed Interface -->
+            <section class="card glass shadow-sm data-card">
+                <nav class="tab-navigation">
+                    <button class="tab-btn active" data-tab="tab-pos-calendar">📅 Programme of Study Calendar</button>
+                    <button class="tab-btn" data-tab="tab-theme-weightings">📊 Theme Weighting (Table 1)</button>
+                    <button class="tab-btn" data-tab="tab-ksb-details">🔍 Ingested KSB Details</button>
+                    <button class="tab-btn" data-tab="tab-rpl-log">🎯 RPL Funding Reduction Log</button>
+                    <button class="tab-btn" data-tab="tab-exports">📥 Export Payloads</button>
+                </nav>
+
+                <div class="tab-content active" id="tab-pos-calendar">
+                    <div class="table-actions">
+                        <h4>Optimized Programme of Study Calendar</h4>
+                        <span class="table-desc">Foundational Knowledge (K) front-loaded. Skills (S) and Behaviours (B) progressive alongside milestones.</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="pos-calendar-table">
+                            <thead>
+                                <tr>
+                                    <th>Timeline</th>
+                                    <th>Module Title</th>
+                                    <th>Mapped KSBs</th>
+                                    <th>Delivery Mode</th>
+                                    <th>OneFile Target Evidence</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Hydrated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tab-theme-weightings">
+                    <div class="table-actions">
+                        <h4>Theme Weightings (Table 1)</h4>
+                        <span class="table-desc">Proportional allocation of GLH based on aggregate gap weights ($W$).</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="theme-weighting-table">
+                            <thead>
+                                <tr>
+                                    <th>Theme Name</th>
+                                    <th>Allocated %</th>
+                                    <th>Allocated Hours</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Hydrated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tab-ksb-details">
+                    <div class="table-actions">
+                        <h4>Ingested Cohort KSB Scores</h4>
+                        <div class="filters">
+                            <input type="text" id="ksb-search" placeholder="Search KSB code or text...">
+                            <select id="priority-filter">
+                                <option value="all">All Priorities</option>
+                                <option value="high">High Priority (0-3)</option>
+                                <option value="medium">Medium Priority (4-7)</option>
+                                <option value="low">Low Priority (8-9)</option>
+                                <option value="exempt">Exempt (10)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="ksb-scores-table">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Theme</th>
+                                    <th>Description</th>
+                                    <th>Mean Score</th>
+                                    <th>Standard Dev</th>
+                                    <th>Gap Weight (W)</th>
+                                    <th>Priority Status</th>
+                                    <th>Allocated Hours</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Hydrated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tab-rpl-log">
+                    <div class="table-actions">
+                        <h4>Recognised Prior Learning (RPL) Funding Reduction Log</h4>
+                        <span class="table-desc">Calculated based on learner scans scoring exactly 10 (Full Understanding/Competency).</span>
+                    </div>
+                    <div class="rpl-summary-box">
+                        <div class="summary-item">
+                            <span class="summary-label">Total Funding Value</span>
+                            <span class="summary-val" id="rpl-total-value">£14,000</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Eligible Exemptions</span>
+                            <span class="summary-val" id="rpl-exemptions-count">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Total Hours Reduced</span>
+                            <span class="summary-val" id="rpl-hours-reduced">0 hrs</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Net Adjusted Funding</span>
+                            <span class="summary-val" id="rpl-adjusted-funding">£14,000</span>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="rpl-log-table">
+                            <thead>
+                                <tr>
+                                    <th>Learner Name / ID</th>
+                                    <th>Exempt KSB Codes</th>
+                                    <th>Exemptions Count</th>
+                                    <th>Hours Deducted</th>
+                                    <th>Funding Deduction</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Hydrated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tab-exports">
+                    <div class="exports-grid">
+                        <div class="export-card">
+                            <div class="export-header">
+                                <h4>1. Microsoft Dynamics / OneFile Integration Payload</h4>
+                                <span class="card-subtitle">Structured module-level data for backend synchronization.</span>
+                            </div>
+                            <div class="code-container">
+                                <pre><code id="dynamics-payload-code">JSON payload will generate here...</code></pre>
+                            </div>
+                            <div class="export-actions">
+                                <button class="btn btn-secondary" id="btn-copy-dynamics">📋 Copy</button>
+                                <button class="btn btn-secondary" id="btn-download-dynamics">📥 Download</button>
+                            </div>
+                        </div>
+
+                        <div class="export-card">
+                            <div class="export-header">
+                                <h4>2. Word Template Hydration Payload (.docx content controls)</h4>
+                                <span class="card-subtitle">Flat JSON mapping object matching key-value structures.</span>
+                            </div>
+                            <div class="code-container">
+                                <pre><code id="word-payload-code">JSON payload will generate here...</code></pre>
+                            </div>
+                            <div class="export-actions">
+                                <button class="btn btn-secondary" id="btn-copy-word">📋 Copy</button>
+                                <button class="btn btn-secondary" id="btn-download-word">📥 Download</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast hidden">Copied to clipboard!</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
