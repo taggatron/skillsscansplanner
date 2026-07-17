@@ -1,0 +1,201 @@
+{
+  "standardName": "L5 Assistant Health Practitioner",
+  "totalKsbCount": 30,
+  "defaultGLH": 1000,
+  "fundingBand": 12000,
+  "themes": [
+    "Working to protocol",
+    "Health and safety",
+    "Assessment of individuals",
+    "CPD and reflection",
+    "Risk management, health and safety",
+    "Provision of care",
+    "Teamwork, role modelling and leadership",
+    "Empowering and educating",
+    "Quality improvement and research",
+    "Information governance",
+    "Communication"
+  ],
+  "rows": [
+    {
+      "id": 1,
+      "ksb": "S1 K1",
+      "theme": "Working to protocol",
+      "desc": "Explain and demonstrate how to adhere to the protocols, legislations, policies, standards and codes of conduct that apply to the role of an assistant practitioner in your everyday work."
+    },
+    {
+      "id": 2,
+      "ksb": "K2 S2 B3",
+      "theme": "Working to protocol",
+      "desc": "Explain and demonstrate how you work within the limits of your scope of practice and competence when carrying out your everyday work, being reliable, consistent and adaptable and recognising when and who to ask for support."
+    },
+    {
+      "id": 3,
+      "ksb": "K3 S3",
+      "theme": "Working to protocol",
+      "desc": "Explain and demonstrate how to work in partnership with others to provide and promote equitable, non-discriminatory, person-centred, safe care and support to an individual, seeking consent and encouraging the individual's active participation and choice."
+    },
+    {
+      "id": 4,
+      "ksb": "K4 S4",
+      "theme": "Working to protocol",
+      "desc": "Explain and demonstrate how to apply the principles of a duty of care, safeguarding and protection to promote and maintain the best interest of an individual, recognising the signs of harm and abuse, and how you do this when you are working with or linking to other agencies and organisations."
+    },
+    {
+      "id": 5,
+      "ksb": "K6 K7 S6 S7",
+      "theme": "Assessment of individuals",
+      "desc": "Explain and demonstrate how to assess an individual's physical and mental healthcare and wellbeing status using the correct equipment and tools relevant to the individual's needs, recognising and acting upon any changes or signs that the individual may be experiencing pain, distress or discomfort and considering the factors that may influence and impact on the assessment."
+    },
+    {
+      "id": 6,
+      "ksb": "K5 S5",
+      "theme": "Assessment of individuals",
+      "desc": "Explain and demonstrate the use the correct equipment, tools and techniques to undertake and monitor physiological, technical or psychological measurements for an individual, recognising when these measurements vary from the normal range, working within your own scope of practice."
+    },
+    {
+      "id": 7,
+      "ksb": "K8 K9 S8 S9",
+      "theme": "Provision of care",
+      "desc": "Explin and demonstrate how you support individuals, making changes or recommendations to a care plan based on your assessment results and overall health and wellbeing, requirements for food and nutrition including nutrition and fluid balance, recognising changes and escalating, intervening or taking the correct action as required by the individual's symptoms, circumstances and care plan."
+    },
+    {
+      "id": 8,
+      "ksb": "B1 K10 S10",
+      "theme": "Provision of care",
+      "desc": "Explain and demonstrate how you adhere to\u00a0delegation protocols when undertaking an evidence-based intervention for an individual, working to standard operating procedures, treating the person with dignity and selecting the correct tools and equipment for the intervention."
+    },
+    {
+      "id": 9,
+      "ksb": "K34 K35 K36",
+      "theme": "Provision of care",
+      "desc": "Explain and demonstrate how to provide care to an individual and can demonstrate an understanding of the structure and function of the human body systems and your relationship to each other, the principles and philosophies of healthcare and the stages and processes of human development relevant to the individual and the context of the care being provided."
+    },
+    {
+      "id": 10,
+      "ksb": "K12 K13 S12 S13",
+      "theme": "Information governance",
+      "desc": "Explain and demonstrate how to adhere to legal and local requirements for recording, storing, reporting, disclosing and sharing information and data, including using technology safely, maintaining confidentiality and respecting a duty of confidence."
+    },
+    {
+      "id": 11,
+      "ksb": "K29 S29",
+      "theme": "Health and safety",
+      "desc": "Evidence how you promote and monitor a safe and healthy environment for yourself and others by using the correct infection prevention and control for the task and complying with the correct policy and procedures including explaining how to handle hazardous materials and substances safely."
+    },
+    {
+      "id": 12,
+      "ksb": "S30 K30",
+      "theme": "Health and safety",
+      "desc": "Explain and demonstrate the principles of safe moving, or assistance of an individual, equipment or another item safely in line with policy and procedure."
+    },
+    {
+      "id": 13,
+      "ksb": "K11 S11",
+      "theme": "Provision of care",
+      "desc": "Discuss how changes in the health and wellbeing of an individual are monitored and reviewed, explaining the impact that a clinical, diagnostic or therapeutic intervention had upon a condition and how the signs that an individual\u2019s health and wellbeing may change as a result of the intervention. Evidence of critically evaluating at least two different clinical, diagnostic or therapeutic interventions describing the benefits of one over another and giving evidence-based examples of the impact on the individual and your condition."
+    },
+    {
+      "id": 14,
+      "ksb": "K18 S18",
+      "theme": "Provision of care",
+      "desc": "Explain mental capacity and the differences between mental illness, dementia and learning disability and the impact of these conditions using examples from your own experience to describe an instance when you recognised and responded to limitations in mental capacity adapting your intervention accordingly."
+    },
+    {
+      "id": 15,
+      "ksb": "K16 S16 B2",
+      "theme": "Communication",
+      "desc": "Explain and demonstrate the different methods of communication used in the workplace, giving real-life examples of techniques you have used to communicate with and about individuals and those you work with, showing respect and empathy, analysing how you have overcome barriers and challenges, and reviewing how your communication has facilitated understanding."
+    },
+    {
+      "id": 16,
+      "ksb": "K17 S17",
+      "theme": "Communication",
+      "desc": "Explain the use and benefits of digital solutions for improving communication systems and practices. Critically evaluate the forms of communication used in the workplace, including digital systems, giving examples of your own real-life experiences and comparing and contrasting your own approach in different circumstances and assessing the outcome for individuals."
+    },
+    {
+      "id": 17,
+      "ksb": "K14 S14",
+      "theme": "Teamwork, role modelling and leadership",
+      "desc": "Justify\u00a0when and why you have delegated work to others in the multi-disciplinary team, acting in line with and engaging with the delegation, accountability and supervision protocols in the workplace."
+    },
+    {
+      "id": 18,
+      "ksb": "K15 S15",
+      "theme": "Teamwork, role modelling and leadership",
+      "desc": "Evidence & analyse\u00a0the structural and strategic environment in which health and social care services operate, explaining who you liaise with within the multi-disciplinary team and how you work together to prioritise and manage workloads."
+    },
+    {
+      "id": 19,
+      "ksb": "K22 S22",
+      "theme": "Teamwork, role modelling and leadership",
+      "desc": "Compare and contrast leadership styles and principles in the workplace, giving examples of how leadership and management impacts on your own role and summarising instances when you have acted as a role-model to others. Critically evaluate your own leadership style and critiques examples of leadership, management and supervision you have experienced, including how the different styles have impacted on themselves and others."
+    },
+    {
+      "id": 20,
+      "ksb": "K19 S19",
+      "theme": "CPD and reflection",
+      "desc": "Explain and demonstrate\u00a0how you have actively taken part in training and development, reviewing how it has impacted on your own practice, and describing how you identify and evaluate your own learning needs and noting how these have been addressed."
+    },
+    {
+      "id": 21,
+      "ksb": "K20 S20",
+      "theme": "CPD and reflection",
+      "desc": "Evidence of your own role in appraisal explaining when you have sought and responded to feedback and how this has impacted on the creation of your personal development plan and ongoing learning journey."
+    },
+    {
+      "id": 22,
+      "ksb": "K21 S21",
+      "theme": "CPD and reflection",
+      "desc": "Describe how reflection can be used to improve practice and explains how you have used reflective models and adapted the way you work and the impact this has had on your own work. Reflect on evaluates your own experiences of becoming a reflective practitioner analysing and predicting your future requirements for ongoing CPD."
+    },
+    {
+      "id": 23,
+      "ksb": "K23 K24 S23 S24",
+      "theme": "Empowering and educating",
+      "desc": "Explain how you have identified the learning needs and styles of others, the strategies, tools and techniques you have applied to teach, coach and mentor them, describing the difference between these activities and analying how you evaluated whether the individual\u2019s learning needs were met. Critically evaluate the strategies, tools and techniques used for teaching, coaching and mentoring justifying your conclusions using  real life examples and analysis of the impact of learning activities."
+    },
+    {
+      "id": 24,
+      "ksb": "K25 S25",
+      "theme": "Empowering and educating",
+      "desc": "Explains how you actively empower and educated individuals to maximise your own health and well-being clarifying how these opportunities link to national and local strategies, priorities and initiatives for promoting and improving public health."
+    },
+    {
+      "id": 25,
+      "ksb": "K26 S26",
+      "theme": "Empowering and educating",
+      "desc": "Evidence when you have promoted preventative health behaviours and supported individuals to make informed choices to improve your health and wellbeing\u00a0 justifying your input by relating any decisions taken or advice given to the wider determinants of\u00a0 health."
+    },
+    {
+      "id": 26,
+      "ksb": "K31 S31",
+      "theme": "Quality improvement and research",
+      "desc": "Discuss the methods and indicators used to measure quality explaining own role in audit or a quality improvement activity, clarifying how these methods and indicators are used to inform and develop a quality improvement plan"
+    },
+    {
+      "id": 27,
+      "ksb": "K32 S32",
+      "theme": "Quality improvement and research",
+      "desc": "Summarise\u00a0your own role in conducting research activities, assessing the rationale and ethical considerations for undertaking the research activity and how you used a literature review or interrogated an existing evidence base and describing how you acted on your findings"
+    },
+    {
+      "id": 28,
+      "ksb": "K33 S33",
+      "theme": "Quality improvement and research",
+      "desc": "Evaluate the opportunities you have had to improve quality in the workplace explaining how you have collected and interpreted research data and applied the findings to your own practice or to support local, regional or national quality improvement initiatives. Critically evaluates the different methods of data collection, comparing and contrasting how the data can be used to inform quality improvement initiatives and your own work"
+    },
+    {
+      "id": 29,
+      "ksb": "K27 S27",
+      "theme": "Risk management, health and safety",
+      "desc": "Evidence of conducting and recording risk assessments relevant to the activity in line with local, national organisational policies and procedures. Critically evaluates the methods for conducting and recording risk assessments within the scope of your own practice."
+    },
+    {
+      "id": 30,
+      "ksb": "K28 S28",
+      "theme": "Risk management, health and safety",
+      "desc": "Describe instances where you have managed challenging situations and unsafe work practices, addressing comments, compliments, conflict and complaints, and evaluating how you have upheld the principles of a duty of candour."
+    }
+  ]
+}
