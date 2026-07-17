@@ -82,6 +82,7 @@ body {
 /* Sidebar Styling */
 .sidebar {
     width: 320px;
+    flex-shrink: 0;
     background: var(--bg-sidebar);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
@@ -90,7 +91,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    position: fixed;
+    position: sticky;
+    top: 0;
     height: 100vh;
     z-index: 10;
     overflow-y: auto;
@@ -320,8 +322,8 @@ input[type="range"] {
 
 /* Main Content Area */
 .main-content {
-    margin-left: 320px;
     flex: 1;
+    min-width: 0;
     padding: 2.5rem;
     display: flex;
     flex-direction: column;
@@ -489,6 +491,7 @@ input[type="range"] {
 .card {
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .card-header {
