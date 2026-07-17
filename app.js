@@ -152,6 +152,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Event Handlers Setup
 function setupEventListeners() {
+    // Sidebar toggles
+    document.getElementById('btn-hide-sidebar')?.addEventListener('click', () => {
+        document.querySelector('.app-container').classList.add('sidebar-hidden');
+    });
+    document.getElementById('btn-show-sidebar')?.addEventListener('click', () => {
+        document.querySelector('.app-container').classList.remove('sidebar-hidden');
+    });
+
     // Select standard
     document.getElementById('standard-select').addEventListener('change', (e) => {
         currentStandard = e.target.value;
